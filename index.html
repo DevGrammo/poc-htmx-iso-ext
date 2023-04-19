@@ -85,13 +85,13 @@
     </section>
     <section>
         <h2>Data element htmx</h2>
-        <data-element id="person" template="person-template" hx-get="/person_api.html" hx-trigger="load"
+        <data-element id="person" template="person-template" hx-get="person_api.html" hx-trigger="load"
             hx-swap="outerHTML">
         </data-element>
     </section>
     <section>
         <h2>Data element htmx json</h2>
-        <data-element id="person" template="person-template" hx-get="/person_api.json" hx-trigger="load"
+        <data-element id="person" template="person-template" hx-get="person_api.json" hx-trigger="load"
             hx-swap="outerHTML" hx-on="htmx:beforeRequest: HTMLifyResponse(event)">
         </data-element>
     </section>
