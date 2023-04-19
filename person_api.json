@@ -1,0 +1,19 @@
+{
+    "person": {
+        "name": "a json name",
+        "aka": "a json aka",
+        "info": {
+            "something": "some value"
+        },
+        "messages": [
+            {
+                "sender": "mr x",
+                "message": "x message json"
+            },
+            {
+                "sender": "mr q",
+                "message": "q message json"
+            }
+        ]
+    }
+}
