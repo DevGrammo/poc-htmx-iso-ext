@@ -1,0 +1,183 @@
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+
+    </style>
+</head>
+
+<script>
+    let personData = {
+        name: "luca",
+        aka: "panof",
+        info: { something: "some value" },
+        messages: [
+            { sender: "mr x", message: "x message" },
+            { sender: "mr q", message: "q message" }
+        ]
+    }
+</script>
+
+
+<template id="person-message">
+    <li>
+        <p> Sender:
+            <slot name="sender"></slot>
+        </p>
+        <p> Message:
+            <slot name="message"></slot>
+        </p>
+    </li>
+</template>
+
+<template id="person-template">
+
+    <div data-entity entity="person">
+        <h3>person entity</h3>
+        <p>
+            <slot name="person.name">Name</slot>
+        </p>
+        <p>
+            <slot name="person.aka">Aka</slot>
+        </p>
+        <div>
+            <h4>info</h4>
+            <div>
+                <p>Something:</p>
+                <span>
+                    <slot name="person.info.something"></slot>
+                </span>
+            </div>
+
+        </div>
+
+        <div>
+            <h4>messages</h4>
+            <slot name="person.messages" template="person-message">
+                <ul></ul>
+            </slot>
+
+        </div>
+    </div>
+</template>
+
+
+<body>
+    <section>
+        <h2>Data element</h2>
+        <data-element id="person" template="person-template"></data-element>
+    </section>
+    <section>
+        <h2>Data element slotted</h2>
+        <data-element id="person" template="person-template">
+            <p slot="person.name">devgrammo</p>
+            <ul slot="person.messages" template="person-message">
+                <data-element template="person-message">
+                    <p slot="sender"> sender slot</p>
+                    <p slot="message"> sender message</p>
+                </data-element>
+            </ul>
+        </data-element>
+    </section>
+    <section>
+        <h2>Data element htmx</h2>
+        <data-element id="person" template="person-template" hx-get="/person_api.html" hx-trigger="load"
+            hx-swap="outerHTML">
+        </data-element>
+    </section>
+    <section>
+        <h2>Data element htmx json</h2>
+        <data-element id="person" template="person-template" hx-get="/person_api.json" hx-trigger="load"
+            hx-swap="outerHTML" hx-on="htmx:beforeRequest: HTMLifyResponse(event)">
+        </data-element>
+    </section>
+</body>
+
+<script src="https://unpkg.com/htmx.org@1.9.0"
+    integrity="sha384-aOxz9UdWG0yBiyrTwPeMibmaoq07/d3a96GCbb9x60f3mOt5zwkjdbcHFnKH8qls"
+    crossorigin="anonymous"></script>
+<script src="https://unpkg.com/hyperscript.org@0.9.8"></script>
+
+
+<script type="text/javascript">
+
+    async function HTMLifyResponse(event) {
+        let xhr = event.detail.xhr
+        let elt = event.target
+        event.detail.shouldSwap = false
+        xhr.onloadend = function () {
+            let data = JSON.parse(xhr.response)
+            let result = installValues(data, elt.shadowRoot)
+        }
+    }
+
+    function getDataNodeType(val) {
+        if (Array.isArray(val)) {
+            return "list"
+        } else if ("string" == (typeof val)) {
+            return "value"
+        } else if ("number" == (typeof val)) {
+            return "value"
+        } else if ("boolean" == (typeof val)) {
+            return "value"
+        }
+        else if (val == null) {
+            return null
+        }
+        else return "node"
+    }
+
+    getValueFromKey = function (object, key) {
+        return key.split(".").reduce((o, i) => o[i], object);
+    }
+
+    installValues = function (JSONdata, dom) {
+
+        for (const s of dom.querySelectorAll("slot")) {
+
+            let val = getValueFromKey(JSONdata, s.getAttribute("name"))
+            if (val == null) { continue }
+            let type = getDataNodeType(val)
+            switch (type) {
+                case "value":
+                    s.innerHTML = val
+                    s.setAttribute("swapped", true)
+                    break
+                case "list":
+                    for (const item of val) {
+                        let template = document
+                            .getElementById(s.getAttribute("template"))
+                            .content.cloneNode(true)
+                        s.querySelector("ul").appendChild(this.installValues(item, template.firstElementChild))
+                    }
+                    break
+                default: s.remove()
+                    break
+            }
+        }
+
+        return dom
+
+    }
+    class DataElement extends HTMLElement {
+        constructor() {
+            super();
+            let template = document.getElementById(this.getAttribute("template"))
+            // implement template
+            const shadowRoot = this.attachShadow({ mode: "open" });
+            shadowRoot.appendChild(template.content.cloneNode(true));
+        }
+
+    }
+    customElements.define("data-element", DataElement);
+</script>
+
+<script src="https://unpkg.com/hyperscript.org@0.9.8"></script>
+
+
+
+</html>
