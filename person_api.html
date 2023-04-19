@@ -1,0 +1,9 @@
+<data-element template="person-template">
+    <p slot="person.name">htmx name</p>
+    <ul slot="person.messages" template="person-message">
+        <data-element template="person-message">
+            <p slot="sender"> sender slot htmx</p>
+            <p slot="message"> sender message htmx</p>
+        </data-element>
+    </ul>
+</data-element>
